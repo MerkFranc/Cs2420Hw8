@@ -1,8 +1,5 @@
 ﻿namespace hw8;
 
-using System;
-using System.Collections.Generic;
-
 // Part A: Trace by hand
 // A1:
 //      Insert:         Array after insert:         Swaps:
@@ -68,26 +65,18 @@ using System.Collections.Generic;
 //                          The priority is how urgent each process is.
 //
 
+using System;
+using System.Collections.Generic;
+
 public class MinPriorityQueue
 {
     private readonly List<int> heap = new List<int>();
 
     public int Count => heap.Count;
-    public int IsEmpty => heap.Count == 0;
+    public bool IsEmpty => Count == 0;
 
-    private static int Parent(int i)
-    {
-        return (i - 1) / 2;
-    }
+    private static int Parent(int i) => (i - 1) / 2;
 
-    public void Swap(int a, int b)
-    {
-        int temp = heap[a];
-        heap[a] = heap[b];
-        heap[b] = temp;
-    }
-
-    // O(log n): add at the end, then bubble up while smaller than parent
     public void Insert(int priority)
     {
         heap.Add(priority);
@@ -99,19 +88,17 @@ public class MinPriorityQueue
         }
     }
 
-    // O(1)
     public int Peek()
     {
         if (IsEmpty)
-            throw new InvalidOperationException("Empty queue");
+            throw new InvalidOperationException("Empty Queue");
         return heap[0];
     }
 
-    // O(log n): move last item to the top, then sink it toward the smaller child
     public int RemoveMin()
     {
         if (IsEmpty)
-            throw new InvalidOperationException("Empty queque");
+            throw new InvalidOperationException("Empty Queue");
         int min = heap[0];
         heap[0] = heap[heap.Count - 1];
         heap.RemoveAt(heap.Count - 1);
@@ -122,40 +109,129 @@ public class MinPriorityQueue
 
     private void SinkDown(int index)
     {
-        while (true) { }
+        while (true)
+        {
+            int minIndex = index;
+            int left = 2 * index + 1,
+                right = 2 * index + 2;
+            if (left < heap.Count && heap[left] < heap[minIndex])
+                minIndex = left;
+            if (right < heap.Count && heap[right] < heap[minIndex])
+                minIndex = right;
+            if (minIndex == index)
+                return;
+            Swap(index, minIndex);
+            index = minIndex;
+        }
     }
+
+    private void Swap(int a, int b) => (heap[a], heap[b]) = (heap[b], heap[a]);
 }
 
 class Program
 {
-    static void Main(string[] args)
+    static bool IsMaxHeap(int[] arr)
     {
-        MinPriorityQueue pq = new MinPriorityQueue();
+        for (int i = 1; i < arr.Length; i++)
+            if (arr[i] > arr[(i - 1) / 2])
+                return false;
+        return true;
+    }
 
-        pq.Insert(15);
-        pq.Insert(40);
-        pq.Insert(25);
-        pq.Insert(50);
-        pq.Insert(10);
-        pq.Insert(45);
+    static void Heapify(int[] arr, int size, int i)
+    {
+        int largest = i;
+        int left = 2 * i + 1;
+        int right = 2 * i + 2;
 
-        while (!pq.IsEmpty)
+        if (left < size && arr[left] > arr[largest])
+            largest = left;
+        if (right < size && arr[right] > arr[largest])
+            largest = right;
+
+        if (largest != i)
         {
-            Console.Write(pq.RemoveMin());
+            (arr[i], arr[largest]) = (arr[largest], arr[i]);
+            Heapify(arr, size, largest);
+        }
+    }
 
-            if (!pq.IsEmpty)
-                Console.Write(", ");
+    static void BuildMaxHeap(int[] arr)
+    {
+        for (int i = arr.Length / 2 - 1; i >= 0; i--)
+            Heapify(arr, arr.Length, i);
+    }
+
+    static void HeapSort(int[] arr)
+    {
+        BuildMaxHeap(arr);
+        for (int end = arr.Length - 1; end > 0; end--)
+        {
+            (arr[0], arr[end]) = (arr[end], arr[0]);
+            Heapify(arr, end, 0);
+        }
+    }
+
+    static int[] TopK(int[] scores, int k)
+    {
+        var pq = new PriorityQueue<int, int>();
+
+        foreach (int s in scores)
+        {
+            pq.Enqueue(s, s);
+            if (pq.Count > k)
+                pq.Dequeue();
         }
 
-        Console.WriteLine();
+        var result = new int[pq.Count];
+        for (int i = result.Length - 1; i >= 0; i--)
+            result[i] = pq.Dequeue();
+        return result;
+    }
+
+    static void Main(string[] args)
+    {
+        // B1
+        var pq = new MinPriorityQueue();
+        foreach (int x in new[] { 15, 40, 25, 50, 10, 45 })
+            pq.Insert(x);
+
+        var removed = new List<int>();
+        while (!pq.IsEmpty)
+            removed.Add(pq.RemoveMin());
+        Console.WriteLine(string.Join(", ", removed));
 
         try
         {
             pq.RemoveMin();
         }
-        catch (InvalidOperationException ex)
+        catch (InvalidOperationException e)
         {
-            Console.WriteLine(ex.Message);
+            Console.WriteLine(e.Message);
         }
+        Console.WriteLine();
+
+        // B2
+        Console.WriteLine(IsMaxHeap(new[] { 90, 70, 80, 30, 60, 50 }));
+        Console.WriteLine(IsMaxHeap(new[] { 50, 40, 30, 45, 10 }));
+        Console.WriteLine(IsMaxHeap(new[] { 10, 20, 30 }));
+        Console.WriteLine(IsMaxHeap(new int[0]));
+        Console.WriteLine();
+
+        // B3
+        int[] data = { 5, 12, 3, 20, 8, 15, 1 };
+
+        int[] copy = (int[])data.Clone();
+        BuildMaxHeap(copy);
+        Console.WriteLine(string.Join(", ", copy));
+        Console.WriteLine(IsMaxHeap(copy));
+
+        HeapSort(data);
+        Console.WriteLine(string.Join(", ", data));
+        Console.WriteLine();
+
+        // B4
+        int[] top = TopK(new[] { 42, 17, 99, 63, 8, 75, 31 }, 3);
+        Console.WriteLine(string.Join(", ", top));
     }
 }
