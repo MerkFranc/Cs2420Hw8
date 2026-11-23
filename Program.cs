@@ -172,6 +172,9 @@ class Program
         }
     }
 
+    // O(n log k) time with O(k) space.
+    // It makes one pass, and each step costs only O(log k) on a heap with k items.
+    // Sorting costs O(n log n) so for small k the heap is much faster and uses less memory.
     static int[] TopK(int[] scores, int k)
     {
         var pq = new PriorityQueue<int, int>();
@@ -215,6 +218,7 @@ class Program
         Console.WriteLine(IsMaxHeap(new[] { 90, 70, 80, 30, 60, 50 }));
         Console.WriteLine(IsMaxHeap(new[] { 50, 40, 30, 45, 10 }));
         Console.WriteLine(IsMaxHeap(new[] { 10, 20, 30 }));
+        Console.WriteLine(IsMaxHeap(new[] { 7 }));
         Console.WriteLine(IsMaxHeap(new int[0]));
         Console.WriteLine();
 
